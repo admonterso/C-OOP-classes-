@@ -3,6 +3,7 @@
     "iostream": "cpp",
     "*.tcc": "cpp",
     "ostream": "cpp",
-    "iosfwd": "cpp"
+    "iosfwd": "cpp",
+    "ncurses.h": "cpp"
   }
 }
