@@ -1,8 +1,7 @@
 #include <ncurses.h>
-int moveCharacter(int& x, int& y, int rows, int columns) {
-    clear();        /* Clear the screen */
+void moveCharacter(int& x, int& y, int rows, int columns) {
     curs_set(false);
-    
+    clear();
     /* Draw the character at the current position */
     mvaddch(y, x, '@');
     mvprintw((rows - 1), (columns - 50), "rows: %d  columns: %d", rows, columns);
@@ -23,28 +22,31 @@ int moveCharacter(int& x, int& y, int rows, int columns) {
         x++;
     }
     else if (ch == 27) {
-        return 1;
     }
 
 }
 int main() {
     int x = 0, y = 0;
-    int ch;
     int rows, columns;
+    char c;
     initscr();          /* Start curses mode */
-    noecho();           /* Don't echo user input */
-    keypad(stdscr, TRUE);/* Enable arrow keys */
-    getmaxyx(stdscr, rows, columns);
-    while (1) {
     
-    int Move = moveCharacter(x, y, rows, columns);
+    noecho();           /* Don't echo user input */
+    
+    keypad(stdscr, TRUE);/* Enable arrow keys */
+    
+    getmaxyx(stdscr, rows, columns);
+    
 
-    if (Move == 1) { /* Exit if user presses 'Esc' key */
-        goto END;
-    }
+    
+    while ((c = getch()) != 27) {
+    
+    moveCharacter(x, y, rows, columns);
+
+    
 }
 
-END:
+
     endwin();           /* End curses mode */
 
     return 0;
