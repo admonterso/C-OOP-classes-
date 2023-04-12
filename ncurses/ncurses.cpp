@@ -1,14 +1,15 @@
 #include <ncurses.h>
 #include <unistd.h> // For usleep() function
+
 int x = 0, y = 0;
 int timer = 0;  // Timer to track elapsed time
-
+int score = 0;
 int rows, columns;
 int ch;
 #define CHARACTER_WIDTH 3
 #define CHARACTER_HEIGHT 2
 #define fallInterval 1000 // Time interval for automatic falling (in microseconds)
-
+bool stat = 0;
 char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
     {'@', ' ', ' '},
     {'@', '@', '@'},
@@ -21,6 +22,15 @@ char gameCharacter1[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
 };
 void drawGameCharacter(int y, int x, char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH], int rows, int columns)
 {
+    mvprintw(6, 5, "x: %d", x); // Print the value of x
+    mvprintw(7, 5, "y: %d", y);
+    mvprintw(8, 5, "S: %d", score); 
+    mvprintw(4, 5, "R: %d", rows);
+    mvprintw(5, 5, "C: %d", columns);
+    if(stat == 1){ 
+        score++;
+        stat = 0;
+    }
     for (int i = 0; i < CHARACTER_HEIGHT; i++)
     {
         for (int j = 0; j < CHARACTER_WIDTH; j++)
@@ -34,7 +44,6 @@ void drawGameCharacter(int y, int x, char gameCharacter[CHARACTER_HEIGHT][CHARAC
         }
     }
 }
-
 void buildTerarian(int rows, int columns, char** Terarian){ //prints 2 dimetional arra
         for(int i = 0; i<rows; i++){
             for(int j = 0; j<columns; j++){
@@ -70,6 +79,22 @@ void insertArray(char** mainTerarian, int y, int x, char insertObject[2][3]) {
         }
     }
 }               
+bool checkScore(char arr[], int columns)
+{
+    int count = 0; // Reset count to 0 for each row
+    for (int i = 0; i < columns; i++) // Include first and last elements of row
+    {
+        if (arr[i] == '@') // Use function argument 'ch' instead of hardcoding '@'
+        {
+            count++;
+        }
+        if (count >= columns-1)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 int main()
 {
     
@@ -86,7 +111,9 @@ int main()
     x = columns/3/2;
     while ((ch = getch()) != 27)
     {
+        
         clear();
+         // Print the value of y
         buildTerarian(rows, columns, terarian);
         drawGameCharacter(y, x, gameCharacter, rows, columns);
         // if(y == rows - 3){
@@ -111,8 +138,13 @@ int main()
             timer = 0; // Reset timer
         }
         if(bottom == 1){
+            
             //printw("bottom reached bech: y - %d x - %d", y, x);
             insertArray(terarian, y, x, obj);
+            bool check = checkScore(terarian[y+1], columns/3);
+            if(check){
+                stat = 1;
+            }
             x = columns/3/2;
             y = 0;
             bottom = 0;
