@@ -16,7 +16,7 @@ char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
 };
 char gameCharacter1[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
     {' ', '@', ' '},
-    {'@', '@', '@'},
+    {' ', '@', '@'},
 
 };
 void drawGameCharacter(int y, int x, char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH], int rows, int columns)
@@ -35,7 +35,7 @@ void drawGameCharacter(int y, int x, char gameCharacter[CHARACTER_HEIGHT][CHARAC
     }
 }
 
-void buildTerarian(int rows, int columns, char** Terarian){
+void buildTerarian(int rows, int columns, char** Terarian){ //prints 2 dimetional arra
         for(int i = 0; i<rows; i++){
             for(int j = 0; j<columns; j++){
                 
@@ -63,7 +63,13 @@ char** startTerarian(int rows, int columns){
     }
     return array;
 }
-               
+void insertArray(char** mainTerarian, int y, int x, char insertObject[2][3]) {
+    for (int i = 0; i < CHARACTER_HEIGHT; i++) {
+        for (int j = 0; j < CHARACTER_WIDTH; j++) {
+            mainTerarian[y + i][x + j] = insertObject[i][j];
+        }
+    }
+}               
 int main()
 {
     
@@ -73,15 +79,16 @@ int main()
     noecho();           /* Don't echo user input */
     keypad(stdscr, TRUE);
     getmaxyx(stdscr, rows, columns);
-
-
+    char (*obj)[3] = gameCharacter;
+    bool bottom = 0;
     timeout(100); // Set getch() to non-blocking mode
     char** terarian =  startTerarian(rows, columns);
+    x = columns/3/2;
     while ((ch = getch()) != 27)
     {
         clear();
         buildTerarian(rows, columns, terarian);
-        drawGameCharacter(y, x, gameCharacter1, rows, columns);
+        drawGameCharacter(y, x, gameCharacter, rows, columns);
         // if(y == rows - 3){
         //     x = 0; 
         //     y = 0;
@@ -96,10 +103,21 @@ int main()
             if (y <= rows - 4)
             {
                 y++;
+                bottom = 0;
+            }
+            else{
+                bottom = 1;
             }
             timer = 0; // Reset timer
         }
+        if(bottom == 1){
+            //printw("bottom reached bech: y - %d x - %d", y, x);
+            insertArray(terarian, y, x, obj);
+            x = columns/3/2;
+            y = 0;
+            bottom = 0;
 
+        }
         // Process user input
         if (ch == KEY_UP && y >= 1)
         {
