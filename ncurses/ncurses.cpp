@@ -95,6 +95,31 @@ bool checkScore(char arr[], int columns)
     }
     return false;
 }
+void empty2DArray(char** Array, int rows, int columns){
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < columns; j++) {
+            if(j == columns/3 || i == rows-1 && j <= columns/3 || j==0){
+                Array[i][j] = '#';
+                }
+           else{
+                Array[i][j] = ' ';
+            }
+
+        }
+    }
+}
+bool chechCollosion(char** Matrix, int X, int Y, int rows, int columns){
+    if (
+        X-2 >= 0 && Matrix[Y][X-2] == '@' || 
+        Y+2 >= 0 && Matrix[Y+2][X] == '@' ||
+        Y+2 >= 0 && Matrix[Y+2][X+1] == '@'||
+        Y+2 >= 0 && Matrix[Y+2][X+2] == '@' ){
+        return false;
+    }
+    else{
+        return true;
+    }
+}
 int main()
 {
     
@@ -105,9 +130,11 @@ int main()
     keypad(stdscr, TRUE);
     getmaxyx(stdscr, rows, columns);
     char (*obj)[3] = gameCharacter;
+    
     bool bottom = 0;
     timeout(100); // Set getch() to non-blocking mode
     char** terarian =  startTerarian(rows, columns);
+    char** matrixForUpdate =  startTerarian(rows, columns);
     x = columns/3/2;
     while ((ch = getch()) != 27)
     {
@@ -115,21 +142,21 @@ int main()
         clear();
          // Print the value of y
         buildTerarian(rows, columns, terarian);
-        drawGameCharacter(y, x, gameCharacter, rows, columns);
-        // if(y == rows - 3){
-        //     x = 0; 
-        //     y = 0;
-        //     printw("-------------rows:%d-------------", rows);
-        //     //drawGameCharacter(y, x, gameCharacter1, rows, columns);
-        // }
         
-        //printw("-------------------%c----------",Terarian[0][0]);
+        drawGameCharacter(y, x, gameCharacter1, rows, columns);
+        
+        
+       bool checkCol = chechCollosion(terarian, x, y, rows, columns);
+        mvprintw(3, 5, "A: %d", checkCol);
         // Check if it's time to make the character fall
         if (timer >= fallInterval )
         {
-            if (y <= rows - 4)
+            
+            if (y <= rows - 4 && checkCol == true)
             {
                 y++;
+                empty2DArray(matrixForUpdate, rows, columns);
+                insertArray(matrixForUpdate, y, x, obj);
                 bottom = 0;
             }
             else{
@@ -137,9 +164,8 @@ int main()
             }
             timer = 0; // Reset timer
         }
-        if(bottom == 1){
+        if(bottom == 1 || checkCol == false){
             
-            //printw("bottom reached bech: y - %d x - %d", y, x);
             insertArray(terarian, y, x, obj);
             bool check = checkScore(terarian[y+1], columns/3);
             if(check){
@@ -154,21 +180,47 @@ int main()
         if (ch == KEY_UP && y >= 1)
         {
             y--;
+            
         }
         else if (ch == KEY_DOWN && y <= rows - 4)
         {
-            y++;
+            checkCol = chechCollosion(terarian, x, y, rows, columns);
+            if(checkCol == true){
+               y++; 
+            }
+            
+            
+            
         }
         else if (ch == KEY_LEFT && x >= 2)
         {
-            x--;
+            checkCol = chechCollosion(terarian, x, y, rows, columns);
+            if(checkCol == true){
+                x--; 
+            }
+           
+            
+            
         }
         else if (ch == KEY_RIGHT && x < columns/3-3)
         {
-            x++;
+            checkCol = chechCollosion(terarian, x, y, rows, columns);
+            if(checkCol == true){
+               x++; 
+            }
+           
+            
         }
-
+        
         timer += 150; // Update timer with elapsed time
+        for(int a = 0; a < columns; a++)
+        {
+            for(int b = 0; b < rows+rows+rows+1; b++)
+            {
+            mvaddch(a, b+50, matrixForUpdate[a][b]);
+            }
+            
+        } 
     }
 
     endwin(); /* End curses mode */
