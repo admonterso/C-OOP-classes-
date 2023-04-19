@@ -6,10 +6,21 @@ int timer = 0;  // Timer to track elapsed time
 int score = 0;
 int rows, columns;
 int ch;
+int insideValue;
 #define CHARACTER_WIDTH 3
 #define CHARACTER_HEIGHT 2
 #define fallInterval 1000 // Time interval for automatic falling (in microseconds)
 bool stat = 0;
+bool isDivisibleByThree(int value) {
+  
+    int sum = 0;
+    while (value != 0) {
+        sum += value % 10;  // Extract the last digit and add it to the sum
+        value /= 10;  // Remove the last digit
+    }
+    
+    return sum % 3 == 0;  // Return true if sum is divisible by 3, false otherwise
+}
 char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
     {'@', ' ', ' '},
     {'@', '@', '@'},
@@ -32,6 +43,7 @@ void drawGameCharacter(int y, int x, char gameCharacter[CHARACTER_HEIGHT][CHARAC
     mvprintw(8, 50, "S: %d", score); 
     mvprintw(4, 50, "R: %d", rows);
     mvprintw(5, 50, "C: %d", columns);
+    mvprintw(1, 50, "X: %d", insideValue);
     if(stat == 1){ 
         score++;
         stat = 0;
@@ -63,10 +75,14 @@ char** startTerarian(int rows, int columns){
     for (char i = 0; i < rows; i++) {
         array[i] = new char[columns];
     }
-
+    insideValue = columns/4;
+    while(isDivisibleByThree(insideValue)== false){
+        insideValue--;
+    }
+    insideValue+=1;
     for(int i = 0; i<rows; i++){
         for(int j = 0; j<columns; j++){
-            if(j == columns/3 || i == rows-1 && j <= columns/3 || j==0){
+            if(j == insideValue || i == rows-1 && j <= insideValue || j==0){
                 mvaddch(i,j,'#');
                 array[i][j] = '#';
                 }
@@ -84,6 +100,7 @@ void insertArray(char** mainTerarian, int y, int x, char insertObject[2][3]) {
         }
     }
 }               
+
 bool checkScore(char arr[], int columns)
 {
     int count = 0; // Reset count to 0 for each row
@@ -186,7 +203,6 @@ int main()
     bool bottom = 0;
     timeout(100); // Set getch() to non-blocking mode
     char** terarian =  startTerarian(rows, columns);
-    char** matrixForUpdate =  startTerarian(rows, columns);
     x = columns/3/2;
     int rand = generateRandomNumber();
     while ((ch = getch()) != 27)
@@ -275,7 +291,7 @@ int main()
             
             
         }
-        else if (ch == KEY_RIGHT && x < columns/3-3)
+        else if (ch == KEY_RIGHT && x < insideValue-3)
         {
             checkCol = chechCollosion(terarian, x, y, rows, columns);
             if(checkCol != 2){
