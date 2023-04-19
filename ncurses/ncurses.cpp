@@ -1,6 +1,6 @@
 #include <ncurses.h>
 #include <unistd.h> // For usleep() function
-
+#include <random>
 int x = 0, y = 0;
 int timer = 0;  // Timer to track elapsed time
 int score = 0;
@@ -17,16 +17,21 @@ char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
 };
 char gameCharacter1[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
     {' ', '@', ' '},
-    {' ', '@', '@'},
+    {'@', '@', '@'},
+
+};
+char gameCharacter2[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
+    {' ', ' ', '@'},
+    {'@', '@', '@'},
 
 };
 void drawGameCharacter(int y, int x, char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH], int rows, int columns)
 {
-    mvprintw(6, 5, "x: %d", x); // Print the value of x
-    mvprintw(7, 5, "y: %d", y);
-    mvprintw(8, 5, "S: %d", score); 
-    mvprintw(4, 5, "R: %d", rows);
-    mvprintw(5, 5, "C: %d", columns);
+    mvprintw(6, 50, "x: %d", x); // Print the value of x
+    mvprintw(7, 50, "y: %d", y);
+    mvprintw(8, 50, "S: %d", score); 
+    mvprintw(4, 50, "R: %d", rows);
+    mvprintw(5, 50, "C: %d", columns);
     if(stat == 1){ 
         score++;
         stat = 0;
@@ -108,17 +113,63 @@ void empty2DArray(char** Array, int rows, int columns){
         }
     }
 }
-bool chechCollosion(char** Matrix, int X, int Y, int rows, int columns){
-    if (
-        X-2 >= 0 && Matrix[Y][X-2] == '@' || 
-        Y+2 >= 0 && Matrix[Y+2][X] == '@' ||
-        Y+2 >= 0 && Matrix[Y+2][X+1] == '@'||
-        Y+2 >= 0 && Matrix[Y+2][X+2] == '@' ){
-        return false;
+int chechCollosion(char** Matrix, int x, int y, int rows, int columns){
+    if ((y + 1 >= 0 && Matrix[y + 2][x] == '@') ||
+        (y + 1 >= 0 && Matrix[y + 2][x + 1] == '@') ||
+        (y + 1 >= 0 && Matrix[y + 2][x + 2] == '@')) {
+        return 0; // Collision with '@' detected below
+    } else if ((x >= 0 && Matrix[y][x - 1] == '@') ||
+               (x >= 0 && Matrix[y][x + 3] == '@')) {
+        return 2; // Collision with '@' detected on left or right
+    } else {
+        return 1; // No collision detected
     }
-    else{
-        return true;
+}
+bool checkEndGame(char** Matrix, int rows, int columns){
+    for(int i = 0; i < columns; i++) {
+        if(Matrix[1][i] == '@') {
+            return true; // '@' symbol found, game over
+        }
     }
+    return false; // '@' symbol not found, game continues
+}
+int generateRandomNumber() {
+    std::random_device rd; // Obtain a random seed from the system
+    std::mt19937 gen(rd()); // Seed the Mersenne Twister engine with the random device
+    std::uniform_int_distribution<int> distribution(1, 3); // Define a uniform distribution from 1 to 2
+
+    return distribution(gen); // Generate and return the random number
+}
+int generateRandomNumberForSpawn() {
+    std::random_device rd; // Obtain a random seed from the system
+    std::mt19937 gen(rd()); // Seed the Mersenne Twister engine with the random device
+    std::uniform_int_distribution<int> distribution(3, 20); // Define a uniform distribution from 1 to 2
+
+    return distribution(gen); // Generate and return the random number
+}
+void print_centered_text(int score) {
+    // Initialize Ncurses
+
+    clear();
+    
+    // Set up color pairs
+    start_color();
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+
+    // Set a larger font using Ncurses attributes
+    attron(COLOR_PAIR(1));
+    attron(A_BOLD); // Make text bold
+
+    // Calculate the center position
+    int center_y = (LINES - 1) / 2;
+    int center_x = (COLS - 7) / 2; // 7 is the length of "THE END"
+
+    // Print the text "THE END" at the center of the screen
+    mvprintw(center_y, center_x, "YOU REACHED THE TOP WITH SCORE %d", score);
+
+    attroff(A_BOLD); // Turn off bold attribute
+    usleep(1000000);
+
 }
 int main()
 {
@@ -130,12 +181,14 @@ int main()
     keypad(stdscr, TRUE);
     getmaxyx(stdscr, rows, columns);
     char (*obj)[3] = gameCharacter;
-    
+    char (*obj1)[3] = gameCharacter1;
+    char (*obj2)[3] = gameCharacter2;
     bool bottom = 0;
     timeout(100); // Set getch() to non-blocking mode
     char** terarian =  startTerarian(rows, columns);
     char** matrixForUpdate =  startTerarian(rows, columns);
     x = columns/3/2;
+    int rand = generateRandomNumber();
     while ((ch = getch()) != 27)
     {
         
@@ -143,20 +196,33 @@ int main()
          // Print the value of y
         buildTerarian(rows, columns, terarian);
         
-        drawGameCharacter(y, x, gameCharacter1, rows, columns);
+        if(rand == 1){
+            drawGameCharacter(y, x, gameCharacter1, rows, columns);
+        }
+        if(rand == 2){
+            drawGameCharacter(y, x, gameCharacter, rows, columns);
+        }
+        if(rand == 3){
+            drawGameCharacter(y, x, gameCharacter2, rows, columns);
+        }
         
+       int checkCol = chechCollosion(terarian, x, y, rows, columns);
+       bool checkEnd = checkEndGame(terarian, rows, columns);
+       if(checkEnd) {
+            print_centered_text(score);
+            
+            
+            
+            
+       }
         
-       bool checkCol = chechCollosion(terarian, x, y, rows, columns);
-        mvprintw(3, 5, "A: %d", checkCol);
         // Check if it's time to make the character fall
         if (timer >= fallInterval )
         {
             
-            if (y <= rows - 4 && checkCol == true)
+            if (y <= rows - 4 && checkCol == 1)
             {
                 y++;
-                empty2DArray(matrixForUpdate, rows, columns);
-                insertArray(matrixForUpdate, y, x, obj);
                 bottom = 0;
             }
             else{
@@ -164,17 +230,24 @@ int main()
             }
             timer = 0; // Reset timer
         }
-        if(bottom == 1 || checkCol == false){
-            
-            insertArray(terarian, y, x, obj);
+        if(bottom == 1 || checkCol == 0){
+            if(rand == 1 ){
+                insertArray(terarian, y, x, obj1);
+            }
+            if(rand == 2 ){
+                insertArray(terarian, y, x, obj);
+            }
+            if(rand == 3 ){
+                insertArray(terarian, y, x, obj2);
+            }
             bool check = checkScore(terarian[y+1], columns/3);
             if(check){
                 stat = 1;
             }
-            x = columns/3/2;
+            x = generateRandomNumberForSpawn();
             y = 0;
             bottom = 0;
-
+            rand = generateRandomNumber();
         }
         // Process user input
         if (ch == KEY_UP && y >= 1)
@@ -185,7 +258,7 @@ int main()
         else if (ch == KEY_DOWN && y <= rows - 4)
         {
             checkCol = chechCollosion(terarian, x, y, rows, columns);
-            if(checkCol == true){
+            if(checkCol == 1){
                y++; 
             }
             
@@ -195,7 +268,7 @@ int main()
         else if (ch == KEY_LEFT && x >= 2)
         {
             checkCol = chechCollosion(terarian, x, y, rows, columns);
-            if(checkCol == true){
+            if(checkCol != 2){
                 x--; 
             }
            
@@ -205,7 +278,7 @@ int main()
         else if (ch == KEY_RIGHT && x < columns/3-3)
         {
             checkCol = chechCollosion(terarian, x, y, rows, columns);
-            if(checkCol == true){
+            if(checkCol != 2){
                x++; 
             }
            
@@ -213,16 +286,9 @@ int main()
         }
         
         timer += 150; // Update timer with elapsed time
-        for(int a = 0; a < columns; a++)
-        {
-            for(int b = 0; b < rows+rows+rows+1; b++)
-            {
-            mvaddch(a, b+50, matrixForUpdate[a][b]);
-            }
-            
-        } 
+       
     }
-
+end:
     endwin(); /* End curses mode */
 
     return 0;
