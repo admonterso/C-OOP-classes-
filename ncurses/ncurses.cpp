@@ -7,6 +7,7 @@ int score = 0;
 int rows, columns;
 int ch;
 int insideValue;
+int deleteRow;
 #define CHARACTER_WIDTH 3
 #define CHARACTER_HEIGHT 2
 #define fallInterval 1000 // Time interval for automatic falling (in microseconds)
@@ -40,10 +41,11 @@ void drawGameCharacter(int y, int x, char gameCharacter[CHARACTER_HEIGHT][CHARAC
 {
     mvprintw(6, 50, "x: %d", x); // Print the value of x
     mvprintw(7, 50, "y: %d", y);
-    mvprintw(8, 50, "S: %d", score); 
+     
     mvprintw(4, 50, "R: %d", rows);
     mvprintw(5, 50, "C: %d", columns);
     mvprintw(1, 50, "X: %d", insideValue);
+    mvprintw(2, 50, "J: %d", deleteRow);
     if(stat == 1){ 
         score++;
         stat = 0;
@@ -101,18 +103,21 @@ void insertArray(char** mainTerarian, int y, int x, char insertObject[2][3]) {
     }
 }               
 
-bool checkScore(char arr[], int columns)
+bool checkScore(char** arr, int rows, int columns)
 {
     int count = 0; // Reset count to 0 for each row
-    for (int i = 0; i < columns; i++) // Include first and last elements of row
+    for (int i = 0; i < rows; i++) // Include first and last elements of row
     {
-        if (arr[i] == '@') // Use function argument 'ch' instead of hardcoding '@'
-        {
-            count++;
-        }
-        if (count >= columns-1)
-        {
-            return true;
+        for(int j =0; j<columns; j++){
+            if(arr[i][j] == '@'){
+                count++;
+                
+            }
+            if(count >= 5){
+                deleteRow = i;
+                return true;
+            }
+             
         }
     }
     return false;
@@ -247,6 +252,7 @@ int main()
             timer = 0; // Reset timer
         }
         if(bottom == 1 || checkCol == 0){
+            
             if(rand == 1 ){
                 insertArray(terarian, y, x, obj1);
             }
@@ -256,9 +262,12 @@ int main()
             if(rand == 3 ){
                 insertArray(terarian, y, x, obj2);
             }
-            bool check = checkScore(terarian[y+1], columns/3);
+            bool check = checkScore(terarian, rows, columns);
             if(check){
-                stat = 1;
+                for(int i = 1; i<insideValue; i++){
+                    terarian[deleteRow][i]= ' ';
+                }
+                
             }
             x = generateRandomNumberForSpawn();
             y = 0;
