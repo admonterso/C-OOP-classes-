@@ -7,7 +7,6 @@ int score = 0;
 int rows, columns;
 int ch;
 int insideValue;
-int deleteRow;
 #define CHARACTER_WIDTH 3
 #define CHARACTER_HEIGHT 2
 #define fallInterval 1000 // Time interval for automatic falling (in microseconds)
@@ -25,27 +24,23 @@ bool isDivisibleByThree(int value) {
 char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
     {'@', ' ', ' '},
     {'@', '@', '@'},
-
 };
 char gameCharacter1[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
     {' ', '@', ' '},
     {'@', '@', '@'},
-
 };
 char gameCharacter2[CHARACTER_HEIGHT][CHARACTER_WIDTH] = {
     {' ', ' ', '@'},
     {'@', '@', '@'},
-
 };
 void drawGameCharacter(int y, int x, char gameCharacter[CHARACTER_HEIGHT][CHARACTER_WIDTH], int rows, int columns)
 {
     mvprintw(6, 50, "x: %d", x); // Print the value of x
     mvprintw(7, 50, "y: %d", y);
-     
+    mvprintw(8, 50, "S: %d", score); 
     mvprintw(4, 50, "R: %d", rows);
     mvprintw(5, 50, "C: %d", columns);
     mvprintw(1, 50, "X: %d", insideValue);
-    mvprintw(2, 50, "J: %d", deleteRow);
     if(stat == 1){ 
         score++;
         stat = 0;
@@ -103,21 +98,18 @@ void insertArray(char** mainTerarian, int y, int x, char insertObject[2][3]) {
     }
 }               
 
-bool checkScore(char** arr, int rows, int columns)
+bool checkScore(char arr[], int columns)
 {
     int count = 0; // Reset count to 0 for each row
-    for (int i = 0; i < rows; i++) // Include first and last elements of row
+    for (int i = 0; i < columns; i++) // Include first and last elements of row
     {
-        for(int j =0; j<columns; j++){
-            if(arr[i][j] == '@'){
-                count++;
-                
-            }
-            if(count >= 5){
-                deleteRow = i;
-                return true;
-            }
-             
+        if (arr[i] == '@') // Use function argument 'ch' instead of hardcoding '@'
+        {
+            count++;
+        }
+        if (count >= columns-1)
+        {
+            return true;
         }
     }
     return false;
@@ -131,7 +123,6 @@ void empty2DArray(char** Array, int rows, int columns){
            else{
                 Array[i][j] = ' ';
             }
-
         }
     }
 }
@@ -159,39 +150,31 @@ int generateRandomNumber() {
     std::random_device rd; // Obtain a random seed from the system
     std::mt19937 gen(rd()); // Seed the Mersenne Twister engine with the random device
     std::uniform_int_distribution<int> distribution(1, 3); // Define a uniform distribution from 1 to 2
-
     return distribution(gen); // Generate and return the random number
 }
 int generateRandomNumberForSpawn() {
     std::random_device rd; // Obtain a random seed from the system
     std::mt19937 gen(rd()); // Seed the Mersenne Twister engine with the random device
     std::uniform_int_distribution<int> distribution(3, 20); // Define a uniform distribution from 1 to 2
-
     return distribution(gen); // Generate and return the random number
 }
 void print_centered_text(int score) {
     // Initialize Ncurses
-
     clear();
     
     // Set up color pairs
     start_color();
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
-
     // Set a larger font using Ncurses attributes
     attron(COLOR_PAIR(1));
     attron(A_BOLD); // Make text bold
-
     // Calculate the center position
     int center_y = (LINES - 1) / 2;
     int center_x = (COLS - 7) / 2; // 7 is the length of "THE END"
-
     // Print the text "THE END" at the center of the screen
     mvprintw(center_y, center_x, "YOU REACHED THE TOP WITH SCORE %d", score);
-
     attroff(A_BOLD); // Turn off bold attribute
     usleep(1000000);
-
 }
 int main()
 {
@@ -252,7 +235,6 @@ int main()
             timer = 0; // Reset timer
         }
         if(bottom == 1 || checkCol == 0){
-            
             if(rand == 1 ){
                 insertArray(terarian, y, x, obj1);
             }
@@ -262,12 +244,9 @@ int main()
             if(rand == 3 ){
                 insertArray(terarian, y, x, obj2);
             }
-            bool check = checkScore(terarian, rows, columns);
+            bool check = checkScore(terarian[y+1], columns/3);
             if(check){
-                for(int i = 1; i<insideValue; i++){
-                    terarian[deleteRow][i]= ' ';
-                }
-                
+                stat = 1;
             }
             x = generateRandomNumberForSpawn();
             y = 0;
@@ -315,6 +294,5 @@ int main()
     }
 end:
     endwin(); /* End curses mode */
-
     return 0;
 }
