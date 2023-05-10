@@ -1,3 +1,7 @@
+//the folowind code with its commit history you can see on my hithub account https://github.com/admonterso/C-OOP-classes-/tree/main/ncurses 
+// command for compilation is "g++ ncurses.cpp -o pr1 -lncurses"
+// his code is not finished and has some bugs in it... sorry for that. I do not used OOP becouse I forgot and currently do not have time to change something
+// thank you in advance 
 #include <ncurses.h>
 #include <unistd.h> // For usleep() function
 #include <random>
